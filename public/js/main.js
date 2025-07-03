@@ -1,179 +1,103 @@
-// js/main.js
 document.addEventListener('DOMContentLoaded', () => {
-    const app = document.getElementById('app');
-    const mainNav = document.getElementById('main-nav');
-    let state = {
+    const appContainer = document.getElementById('app-container');
+    const state = {
         loggedIn: false,
-        user: null
+        user: null,
+    };
+    const ICONS = {
+        DASHBOARD: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>`,
+        SETTINGS: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`,
+        ADMIN: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z"></path></svg>`,
     };
 
-    // --- API HELPER ---
+    // --- API & Utils ---
     const api = {
         get: (endpoint) => request(endpoint, 'GET'),
                           post: (endpoint, body) => request(endpoint, 'POST', body),
                           put: (endpoint, body) => request(endpoint, 'PUT', body),
                           delete: (endpoint) => request(endpoint, 'DELETE'),
     };
-
-    async function request(endpoint, method, body = null) {
-        const headers = { 'Content-Type': 'application/json' };
-        const config = {
-            method,
-            headers,
-        };
-        if (body) {
-            config.body = JSON.stringify(body);
-        }
-
-        try {
-            const response = await fetch(`/api${endpoint}`, config);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
-            if (response.status === 204 || response.headers.get('content-length') === '0') {
-                return null; // Handle no-content responses
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('API Error:', error.message);
-            showNotification(error.message, 'error');
-            throw error;
-        }
-    }
-
-    // --- NOTIFICATIONS ---
-    function showNotification(message, type = 'success') {
-        const notif = document.createElement('div');
-        notif.className = `notification ${type}`;
-        notif.textContent = message;
-        document.body.appendChild(notif);
-        setTimeout(() => {
-            notif.remove();
-        }, 3000);
-    }
+    async function request(endpoint, method, body = null) { /* ... same as your old file ... */ }
 
     // --- ROUTER & RENDERING ---
     async function router() {
-        showSpinner();
         await checkSession();
-        const path = window.location.hash.slice(1) || '/';
-
-        updateNav();
+        const path = window.location.hash.slice(2) || 'dashboard'; // e.g., 'dashboard', 'settings', 'admin/users'
 
         if (!state.loggedIn) {
             renderLogin();
             return;
         }
 
-        if (path.startsWith('/admin')) {
-            if (state.user && state.user.is_admin) {
-                renderAdmin(path.split('/')[2]);
+        renderMainLayout();
+
+        if (path.startsWith('admin')) {
+            if (state.user?.is_admin) {
+                renderAdminView(path.split('/')[1] || 'users');
             } else {
-                window.location.hash = '/'; // Redirect non-admins
+                window.location.hash = '/dashboard';
             }
-        } else if (path === '/settings') {
-            renderSettings();
+        } else if (path === 'settings') {
+            renderSettingsView();
         } else {
-            renderDashboard();
+            renderDashboardView();
         }
+
+        updateActiveNavLink(path);
     }
 
-    function updateNav() {
-        mainNav.innerHTML = '';
-        if (state.loggedIn) {
-            mainNav.innerHTML = `
-            <a href="#" class="nav-link ${window.location.hash === '#' || window.location.hash === '' ? 'active' : ''}">Dashboard</a>
-            <a href="#/settings" class="nav-link ${window.location.hash === '#/settings' ? 'active' : ''}">Settings</a>
-            `;
-            if (state.user.is_admin) {
-                mainNav.innerHTML += `<a href="#/admin" class="nav-link ${window.location.hash.startsWith('#/admin') ? 'active' : ''}">Admin</a>`;
-            }
-            const logoutButton = document.createElement('button');
-            logoutButton.textContent = 'Logout';
-            logoutButton.onclick = handleLogout;
-            mainNav.appendChild(logoutButton);
-        }
+    function renderMainLayout() {
+        if (document.querySelector('.main-layout')) return; // Already rendered
+
+        const layoutTemplate = document.getElementById('main-layout-template').content.cloneNode(true);
+        appContainer.innerHTML = '';
+        appContainer.appendChild(layoutTemplate);
+
+        const sidebarContainer = document.getElementById('sidebar');
+        const sidebarTemplate = document.getElementById('sidebar-template').content.cloneNode(true);
+        sidebarContainer.appendChild(sidebarTemplate);
+
+        document.getElementById('username-display').textContent = state.user.username;
+        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+        const nav = document.getElementById('sidebar-nav');
+        nav.innerHTML = `
+        <a href="#/dashboard">${ICONS.DASHBOARD} Dashboard</a>
+        <a href="#/settings">${ICONS.SETTINGS} Settings</a>
+        ${state.user?.is_admin ? `<a href="#/admin/users">${ICONS.ADMIN} Admin</a>` : ''}
+        `;
     }
 
-    async function checkSession() {
-        try {
-            const sessionData = await api.get('/auth/session');
-            state.loggedIn = sessionData.loggedIn;
-            state.user = sessionData.user;
-        } catch (e) {
-            state.loggedIn = false;
-            state.user = null;
-        }
-    }
-
-    function showSpinner() {
-        app.innerHTML = `<div class="spinner-container"><div class="spinner"></div></div>`;
-    }
-
-    function renderTemplate(templateId, target = app) {
-        const template = document.getElementById(templateId);
-        target.innerHTML = '';
-        target.appendChild(template.content.cloneNode(true));
-    }
-
-    // --- LOGIN/REGISTER VIEW ---
-    function renderLogin() {
-        renderTemplate('login-template');
-
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const tabs = document.querySelectorAll('.tab-button');
-        const messageEl = document.getElementById('auth-message');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-                document.getElementById(`${tab.dataset.tab}-form`).classList.add('active');
-                messageEl.textContent = '';
-            });
-        });
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                await api.post('/auth/login', { username, password });
-                window.location.hash = '/';
-                router();
-            } catch (error) {
-                messageEl.textContent = error.message;
-                messageEl.className = 'message error';
-            }
-        });
-
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
-            const inviteCode = document.getElementById('invite-code').value;
-            try {
-                const result = await api.post('/auth/register', { username, password, inviteCode });
-                messageEl.textContent = result.message + '. Please login.';
-                messageEl.className = 'message success';
-                document.querySelector('[data-tab="login"]').click(); // Switch to login tab
-                registerForm.reset();
-            } catch (error) {
-                messageEl.textContent = error.message;
-                messageEl.className = 'message error';
+    function updateActiveNavLink(path) {
+        document.querySelectorAll('.sidebar-nav a').forEach(a => {
+            const linkPath = a.getAttribute('href').slice(2);
+            if (path.startsWith(linkPath)) {
+                a.classList.add('active');
+            } else {
+                a.classList.remove('active');
             }
         });
     }
 
-    async function handleLogout() {
-        await api.post('/auth/logout');
-        state.loggedIn = false;
-        state.user = null;
-        window.location.hash = '';
-        router();
+    // --- VIEWS ---
+
+    function renderDashboardView() {
+        const content = document.getElementById('app-content');
+        content.innerHTML = `<h2>Dashboard</h2><div class="url-list"></div>`;
+        // ... Load URLs into .url-list ...
+    }
+
+    function renderSettingsView() {
+        const content = document.getElementById('app-content');
+        content.innerHTML = `<h2>Settings</h2>`;
+        // ... Render settings content ...
+    }
+
+    function renderAdminView(subview) {
+        const content = document.getElementById('app-content');
+        content.innerHTML = `<h2>Admin Panel</h2>`;
+        // ... Render admin content based on subview ...
+        updateActiveNavLink(`admin/${subview}`);
     }
 
     // --- DASHBOARD VIEW ---
@@ -385,10 +309,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- INITIALIZATION ---
     window.addEventListener('hashchange', router);
-    router(); // Initial call
+    router();
 });
+
 
 // A proper notification would be better than an alert.
 // Adding a simple one in CSS.
