@@ -34,7 +34,6 @@ const PORT = process.env.PORT || 3000;
 const db = new sqlite3.Database(path.join(dataDir, 'database.sqlite')); // <-- Changed path
 db.run('PRAGMA foreign_keys = ON');
 
-
 db.serialize(() => {
   // Users table
   db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -764,8 +763,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Visit http://localhost:${PORT} to access evade.lol`);
+app.listen(PORT, '0.0.0.0', () => { // <-- Add '0.0.0.0' here
+  console.log(`Server running on http://0.0.0.0:${PORT}`); // Update log message for clarity
+  console.log(`Visit http://localhost:${PORT} to access evade.lol`); // Keep this for local testing convenience
 });
