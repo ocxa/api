@@ -682,10 +682,10 @@ app.get('*', (req, res) => {
 
 
 // --- ERROR HANDLING & SERVER START ---
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!', message: err.message });
-});
+//app.use((err, req, res, next) => {
+  //console.error(err.stack);
+  //res.status(500).json({ error: 'Something went wrong!', message: err.message });
+//});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`evade.lol server running on http://0.0.0.0:${PORT}`);
