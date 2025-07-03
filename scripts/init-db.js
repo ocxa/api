@@ -11,19 +11,34 @@ async function initializeDatabase() {
     // Enable foreign keys
     db.run('PRAGMA foreign_keys = ON');
 
-    // Create users table
+
     db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        is_admin BOOLEAN DEFAULT 0,
-        is_blocked BOOLEAN DEFAULT 0,
-        can_post BOOLEAN DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_login DATETIME,
-        ip_address TEXT
-      )
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      is_admin INTEGER DEFAULT 0,      -- Changed from BOOLEAN
+      is_blocked INTEGER DEFAULT 0,    -- Changed from BOOLEAN
+      can_post INTEGER DEFAULT 1,      -- Changed from BOOLEAN
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_login DATETIME,
+      ip_address TEXT
+    )
+    `);
+
+    // Create invite codes table
+    db.run(`
+    CREATE TABLE IF NOT EXISTS invite_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      created_by INTEGER,
+      used_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      used_at DATETIME,
+      is_used INTEGER DEFAULT 0, -- Changed from BOOLEAN
+      FOREIGN KEY (created_by) REFERENCES users(id),
+                                             FOREIGN KEY (used_by) REFERENCES users(id)
+    )
     `);
 
     // Create invite codes table
