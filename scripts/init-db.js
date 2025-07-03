@@ -113,7 +113,6 @@ async function initializeDatabase() {
         console.log('✓ Database connection closed');
       }
     });
-
   } catch (error) {
     console.error('Error initializing database:', error);
   }
