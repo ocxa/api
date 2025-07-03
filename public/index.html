@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>evade.lol</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <div class="logo">
+                <a href="#">evade.lol</a>
+            </div>
+            <nav id="main-nav">
+                <!-- Navigation will be built by JS -->
+            </nav>
+        </header>
+
+        <main id="app">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>evade.lol - Easily manage your online presence.</p>
+    </footer>
+
+    <!-- Templates -->
+    <template id="login-template">
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="login">Login</button>
+                    <button class="tab-button" data-tab="register">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form active">
+                    <h2>Welcome Back</h2>
+                    <div class="input-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="auth-form">
+                    <h2>Create Account</h2>
+                    <div class="input-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="invite-code">Invite Code</label>
+                        <input type="text" id="invite-code" required>
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+                <p id="auth-message" class="message"></p>
+            </div>
+        </div>
+    </template>
+
+    <template id="dashboard-template">
+        <div class="dashboard-container">
+            <h2>Your Links</h2>
+            <div class="url-list" id="url-list-container">
+                <!-- URLs will be inserted here by JS -->
+            </div>
+        </div>
+    </template>
+
+    <template id="settings-template">
+         <div class="settings-container">
+            <h2>Settings</h2>
+            <div class="card">
+                <h3>Change Password</h3>
+                <form id="change-password-form">
+                     <div class="input-group">
+                        <label for="current-password">Current Password</label>
+                        <input type="password" id="current-password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-password">New Password</label>
+                        <input type="password" id="new-password" required>
+                    </div>
+                    <button type="submit">Update Password</button>
+                    <p id="password-message" class="message"></p>
+                </form>
+            </div>
+             <div class="card">
+                <h3>API Key</h3>
+                <div id="api-key-info">
+                    <!-- API Key info loaded here -->
+                </div>
+                <div class="button-group">
+                     <button id="generate-key-btn">Generate New Key</button>
+                     <button id="delete-key-btn" class="danger" style="display:none;">Delete Key</button>
+                </div>
+                <p id="api-key-message" class="message"></p>
+             </div>
+        </div>
+    </template>
+
+    <template id="admin-template">
+        <div class="admin-container">
+            <h2>Admin Panel</h2>
+            <div class="admin-nav">
+                <a href="#admin/users" class="admin-nav-link" data-view="users">Users</a>
+                <a href="#admin/urls" class="admin-nav-link" data-view="urls">All URLs</a>
+                <a href="#admin/invites" class="admin-nav-link" data-view="invites">Invite Codes</a>
+                <a href="#admin/ips" class="admin-nav-link" data-view="ips">Blocked IPs</a>
+            </div>
+            <div id="admin-content">
+                <!-- Admin sub-view content will be loaded here -->
+            </div>
+        </div>
+    </template>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
