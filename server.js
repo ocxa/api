@@ -8,13 +8,32 @@ const helmet = require('helmet');
 const cors = require('cors');
 const crypto = require('crypto');
 const path = require('path');
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const fs = require('fs'); 
+// ----------------------------------------
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize database
 const db = new sqlite3.Database('./database.sqlite');
 db.run('PRAGMA foreign_keys = ON');
+
+const dataDir = path.join(__dirname, 'data');
+if (!fs.existsSync(dataDir)){
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const db = new sqlite3.Database(path.join(dataDir, 'database.sqlite')); // <-- Changed path
+db.run('PRAGMA foreign_keys = ON');
+
 
 db.serialize(() => {
   // Users table
@@ -718,6 +737,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+app.use(session({
+  store: new SQLiteStore({ 
+      db: 'sessions.sqlite', // connect-sqlite3 needs a name
+      dir: dataDir             // and a directory
+  }),
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
