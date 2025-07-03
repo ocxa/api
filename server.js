@@ -721,8 +721,13 @@ app.get('*', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error(err.stack); // This logs the full error to your server console
+  // Send the detailed error back in the API response for debugging
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: err.message, // The actual error message
+    stack: err.stack      // The stack trace
+  });
 });
 
 // Start server
