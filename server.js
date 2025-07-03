@@ -14,17 +14,10 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize database
-const db = new sqlite3.Database('./database.sqlite');
-db.run('PRAGMA foreign_keys = ON');
-
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)){
     fs.mkdirSync(dataDir, { recursive: true });
 }
-
-const app = express();
-const PORT = process.env.PORT || 3000;
 
 const db = new sqlite3.Database(path.join(dataDir, 'database.sqlite')); // <-- Changed path
 db.run('PRAGMA foreign_keys = ON');
