@@ -43,9 +43,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Session Management
 app.use(session({
-  store: new SQLiteStore({
-    db: 'sessions.sqlite',
-    dir: dataDir
+  store: new SQLiteStore({ 
+      db: 'sessions.sqlite', // The name of the session db file
+      dir: dataDir             // The directory to store it in (your ./data folder)
   }),
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
@@ -53,7 +53,7 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax', // Better for security
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
 }));
