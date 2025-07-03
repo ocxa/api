@@ -16,7 +16,6 @@ const PORT = process.env.PORT || 3000;
 const db = new sqlite3.Database('./database.sqlite');
 db.run('PRAGMA foreign_keys = ON');
 
-// Create tables
 db.serialize(() => {
   // Users table
   db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -53,7 +52,7 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     used_at DATETIME,
     FOREIGN KEY (created_by) REFERENCES users (id),
-    FOREIGN KEY (used_by) REFERENCES users (id)
+                                                   FOREIGN KEY (used_by) REFERENCES users (id)
   )`);
 
   // API keys table
@@ -67,22 +66,33 @@ db.serialize(() => {
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
   )`);
 
+  // Blocked IPs table
+  db.run(`CREATE TABLE IF NOT EXISTS blocked_ips (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT UNIQUE NOT NULL,
+    blocked_by INTEGER NOT NULL,
+    reason TEXT,
+    blocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blocked_by) REFERENCES users (id)
+  )`);
+
   // Create default admin user
   db.get('SELECT * FROM users WHERE username = ?', ['admin'], (err, row) => {
     if (!row) {
       bcrypt.hash('admin', 10, (err, hash) => {
         if (!err) {
-          db.run('INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 1)', 
-            ['admin', hash], (err) => {
-            if (!err) {
-              console.log('Default admin user created (username: admin, password: admin)');
-            }
-          });
+          db.run('INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 1)',
+                 ['admin', hash], (err) => {
+                   if (!err) {
+                     console.log('Default admin user created (username: admin, password: admin)');
+                   }
+                 });
         }
       });
     }
   });
 });
+
 
 // Security middleware
 app.use(helmet({
@@ -194,7 +204,7 @@ app.post('/api/auth/register', (req, res) => {
     
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
-      const clientIp = req.ip || req.connection.remoteAddress;
+      const clientIp = req.ip;
       
       db.run('INSERT INTO users (username, password_hash, ip_address) VALUES (?, ?, ?)', 
         [username, hashedPassword, clientIp], function(err) {
